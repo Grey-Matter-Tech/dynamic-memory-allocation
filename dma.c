@@ -57,7 +57,6 @@ static void * find_fit(unsigned int size)
 		{
 			return (void *)start;
 		}
-		//printf("######## FIND_FIT :: %d\n", *start, *start/4);
 		start += ((*start) & ~(1))/sizeof(int);
 	}
 	return NULL;
