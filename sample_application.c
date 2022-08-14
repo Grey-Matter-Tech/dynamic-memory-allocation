@@ -14,22 +14,23 @@ void main(void)
 	{
 		int i = 0, size = 0;
 		unsigned int *ptr = NULL, *sptr = NULL;
-		while(i < 10)
+		unsigned char catch = rand() % 9 + 1;
+		while(i < 25)
 		{
-			if(i == 4)
+			if( i % 4 == 0)
 			{
 				driver_beta.heap_free(sptr);
 			}
 			else
 			{
-				size = rand() % 69;
+				size = rand() % 569;
 				ptr = (unsigned int *)driver_beta.heap_alloc(size * sizeof(int));
-				if(i == 2)
-				{
-					sptr = ptr;
-				}
 				if(ptr)
 				{
+					if(i % catch == 0)
+					{
+						sptr = ptr;
+					}
 #if (DEBUG==APP_DEBUG) || (DEBUG==HEAP_DEBUG_ALL)
 					printf("Allocated buffer at address :: %p[%d]\n", ptr, size);
 #endif

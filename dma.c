@@ -1,6 +1,7 @@
 /*
  * dma.c
  *
+<<<<<<< HEAD
  *  Created on: **-***-20**
  *      Author: HarshDave
  */
@@ -29,14 +30,14 @@ unsigned char hheap_init(void)
 
 void hheap_stats(void)
 {
-	unsigned char *ptr = (unsigned char *)HEAP_LOW_END;
-	while(ptr < (unsigned char *)HEAP_HIGH_END)
+	unsigned int *ptr = (unsigned int *)HEAP_LOW_END;
+	while(ptr < (unsigned int *)HEAP_HIGH_END)
 	{
-		printf("%p and %d\n", ptr, (*ptr & ~(1)));
+		printf("%p and %d\n", ptr, (*(unsigned int *)ptr & ~(1)));
 		if ((*ptr & 1))
 		{
-			printf("Memory chunk at :: %p [%d]\n", ptr, (*ptr & ~(1)));
-			ptr += (*ptr & ~(1));
+			printf("Memory chunk at :: %p [%d]\n", ptr, (*(unsigned int *)ptr & ~(1)));
+			ptr += (*ptr & ~(1))/sizeof(unsigned int);
 		}
 		else
 		{
@@ -49,31 +50,33 @@ void hheap_stats(void)
 
 static void * find_fit(unsigned int size)
 {
-	unsigned char *start = (unsigned char *)HEAP_LOW_END;
-	while(start < (unsigned char *)HEAP_HIGH_END)
+	unsigned int *start = (unsigned int *)HEAP_LOW_END;
+	while(start < (unsigned int *)HEAP_HIGH_END)
 	{
 		if(( (!(*start & 1)) && (*start > size) ) || (!(*start & 1)))
 		{
 			return (void *)start;
 		}
-		start += ((*start) & ~(1));
+		//printf("######## FIND_FIT :: %d\n", *start, *start/4);
+		start += ((*start) & ~(1))/sizeof(int);
 	}
 	return NULL;
 }
 
+
 void hheap_maintenance(void * free_ptr)
 {
-	unsigned char *ptr = (unsigned char *)free_ptr + *(unsigned int *)(free_ptr);
+	unsigned int *ptr = (free_ptr + *(unsigned int *)(free_ptr));
 	unsigned char *nptr = (unsigned char *)free_ptr + *(unsigned int *)(free_ptr);
 	unsigned char *src = free_ptr;
 	unsigned long high_end = 0;
 	unsigned int count = 0;
-	while(ptr < (unsigned char *)HEAP_HIGH_END)
+	while(ptr < HEAP_HIGH_END)
 	{
 		if ((*ptr & 1))
 		{
 			count++;
-			ptr += (*ptr & ~(1));
+			ptr += (*ptr & ~(1))/sizeof(unsigned int);
 		}
 		else
 		{
@@ -86,7 +89,7 @@ void hheap_maintenance(void * free_ptr)
 		high_end = (unsigned long) (nptr + (*nptr & ~(1)));
 		while((unsigned long)nptr < high_end)
 		{
-			*(unsigned char *)src++ = *(unsigned char *)nptr++;
+			*src++ = *nptr++;
 		}
 		count--;
 	}
@@ -95,26 +98,32 @@ void hheap_maintenance(void * free_ptr)
 unsigned char hheap_free(void *addr)
 {
 	unsigned char ret = FAIL;
-	unsigned char *header = (addr - HEADER_SIZE);
-#if (DEBUG == HEAP_DEBUG_ALL) || (DEBUG == HEAP_ADDRESS_DEBUG)
-	printf(KYEL"hfree :: Checking address %p and %p -- [%p][%p]\n"KNRM, header, addr, HEAP_LOW_END, HEAP_HIGH_END);
-
-#endif
-	if(VALIDATE_ADDRESS((unsigned int *)header) == OK)
+	if(addr)
 	{
+		unsigned int *header = (addr - HEADER_SIZE);
+
 #if (DEBUG == HEAP_DEBUG_ALL) || (DEBUG == HEAP_ADDRESS_DEBUG)
-		printf(KYEL"hfree :: Address is valid :: %p[%d]\n"KNRM, header + HEADER_SIZE, *(unsigned int *)header);
-		printf(KYEL"hfree :: Freeing the memory\n"KNRM);
+		printf(KYEL"hfree :: Checking address %p and %p -- [%p][%p]\n"KNRM, header, addr, HEAP_LOW_END, HEAP_HIGH_END);
 #endif
-		*header &= ~(1);
-		UPDATE_REM_MEM(-*(header));
-		ret = OK;
+		if(VALIDATE_ADDRESS(header) == OK)
+		{
+#if (DEBUG == HEAP_DEBUG_ALL) || (DEBUG == HEAP_ADDRESS_DEBUG)
+			printf(KYEL"hfree :: Address is valid :: %p[%d]\n"KNRM, header + HEADER_SIZE, *(unsigned int *)header);
+			printf(KYEL"hfree :: Freeing the memory\n"KNRM);
+#endif
+			*header &= ~(1);
+			UPDATE_REM_MEM(-*(header));
+			ret = OK;
+		}
+		hheap_maintenance(header);
 	}
-
-	hheap_maintenance(header);
-
+	else
+	{
+		printf("Address is NULL\n");
+	}
 	return ret;
 }
+
 
 void *hheap_alloc(unsigned int size)
 {

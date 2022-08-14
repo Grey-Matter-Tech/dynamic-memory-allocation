@@ -23,7 +23,7 @@
 #define ALIGNMENT 4U
 #define HEADER_SIZE 4U
 #define ALIGN(size)	size + (ALIGNMENT - 1) & ~(ALIGNMENT - 1)
-#define HEAP_SIZE 128*4*128
+#define HEAP_SIZE 1024*4*1024
 #define APP_DEBUG 1
 #define HEAP_DEBUG_ALL 2
 #define HEAP_ADDRESS_DEBUG 3

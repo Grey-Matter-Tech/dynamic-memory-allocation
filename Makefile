@@ -6,5 +6,8 @@ OBJ = sample_application.o dma.o
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-dmaMake: $(OBJ)
+dma: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
+	
+clean:
+	rm ./*.o dma
