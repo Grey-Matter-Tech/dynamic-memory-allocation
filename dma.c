@@ -1,6 +1,7 @@
 /*
  * dma.c
  *
+<<<<<<< HEAD
  *  Created on: **-***-20**
  *      Author: HarshDave
  */
@@ -61,6 +62,7 @@ static void * find_fit(unsigned int size)
 	return NULL;
 }
 
+
 void hheap_maintenance(void * free_ptr)
 {
 	unsigned char *ptr = (unsigned char *)free_ptr + *(unsigned int *)(free_ptr);
@@ -96,6 +98,7 @@ unsigned char hheap_free(void *addr)
 {
 	unsigned char ret = FAIL;
 	unsigned char *header = (addr - HEADER_SIZE);
+
 #if (DEBUG == HEAP_DEBUG_ALL) || (DEBUG == HEAP_ADDRESS_DEBUG)
 	printf(KYEL"hfree :: Checking address %p and %p -- [%p][%p]\n"KNRM, header, addr, HEAP_LOW_END, HEAP_HIGH_END);
 
@@ -112,9 +115,9 @@ unsigned char hheap_free(void *addr)
 	}
 
 	hheap_maintenance(header);
-
 	return ret;
 }
+
 
 void *hheap_alloc(unsigned int size)
 {
