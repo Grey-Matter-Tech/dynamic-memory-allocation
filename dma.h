@@ -22,8 +22,8 @@
  */
 #define ALIGNMENT 4U
 #define HEADER_SIZE 4U
-#define ALIGN(size)	size + (ALIGNMENT - 1) & ~(ALIGNMENT - 1)
-#define HEAP_SIZE 1024*4*1024
+#define ALIGN(size)	(( (size) + (ALIGNMENT - 1) ) & ~(ALIGNMENT - 1))
+#define HEAP_SIZE ALIGN(1024*4*1024)
 #define APP_DEBUG 1
 #define HEAP_DEBUG_ALL 2
 #define HEAP_ADDRESS_DEBUG 3
@@ -44,7 +44,7 @@
  */
 #define HEAP_HIGH_END \
 	({\
-		hheap->heap + HEAP_SIZE; \
+		hheap->heap + HEAP_SIZE/sizeof(unsigned int); \
 	})
 
 #define HEAP_LOW_END \
@@ -55,6 +55,10 @@
 #define UPDATE_REM_MEM(x) \
 	({\
 		hheap->rem_mem -= x;\
+		if(hheap->rem_mem <= 0)\
+		{\
+			printf("FUCKER BONCHOD\n");\
+		}\
 	})
 
 #define VALIDATE_ADDRESS(x) \
