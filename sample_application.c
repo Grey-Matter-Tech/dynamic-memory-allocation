@@ -15,7 +15,7 @@ void main(void)
 		int i = 0, size = 0;
 		unsigned int *ptr = NULL, *sptr = NULL;
 		unsigned char catch = rand() % 9 + 1;
-		while(i < 25)
+		while(i < 100)
 		{
 			if( i % 4 == 0)
 			{
@@ -32,6 +32,7 @@ void main(void)
 						sptr = ptr;
 					}
 #if (DEBUG==APP_DEBUG) || (DEBUG==HEAP_DEBUG_ALL)
+					memset(ptr, ('A' + (rand() % 26)),size * sizeof(int));
 					printf("Allocated buffer at address :: %p[%d]\n", ptr, size);
 #endif
 				}
