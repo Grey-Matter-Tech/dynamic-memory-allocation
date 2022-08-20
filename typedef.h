@@ -31,53 +31,21 @@
 
 /**
  * \file
- *         A very simple application to validate basic functionality of hheap memory.
+ *
  * \author
  *         Harsh Dave <HarshDave-Sithlord>
  */
 
-#include "dma.h"
-#include "utils.h"
+#ifndef SYSTEM_PROGRAMMING_DYNAMIC_MEMORY_ALLOCATION_TYPEDEF_H_
+#define SYSTEM_PROGRAMMING_DYNAMIC_MEMORY_ALLOCATION_TYPEDEF_H_
 
-void main(void)
-{
-	if(HEAP.init_heap() == OK)
-	{
-		int i = 0, size = 0;
-		unsigned int *ptr = NULL, *sptr = NULL;
-		unsigned char catch = rand() % 9 + 1;
-		while(i < 100)
-		{
-			if( i % 4 == 0)
-			{
-				HEAP.heap_free(sptr);
-				HEAP.heap_flush();
-			}
-			else
-			{
-				size = rand() % 569;
-				ptr = (unsigned int *)HEAP.heap_alloc(size * sizeof(int));
-				if(ptr)
-				{
-					if(i % catch == 0)
-					{
-						sptr = ptr;
-					}
-#if (DEBUG==APP_DEBUG) || (DEBUG==HEAP_DEBUG_ALL)
-					memset(ptr, ('A' + (rand() % 26)),size /** sizeof(int)*/);
-					printf("Allocated buffer at address :: %p[%d]\n", ptr, size);
-#endif
-				}
-				else
-				{
-#if (DEBUG==APP_DEBUG) || (DEBUG==HEAP_DEBUG_ALL)
-					printf("Failed!!\n");
-#endif
-				}
-			}
-			i++;
-		}
-		printf("DUMPING STATS###########################\n");
-		HEAP.heap_statistics();
-	}
-}
+
+#ifndef HHEAP_TYPEEDEFS
+typedef unsigned char bool_t;
+typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
+typedef unsigned long uint64_t;
+#endif /* HHEAP_TYPEEDEFS */
+
+
+#endif /* SYSTEM_PROGRAMMING_DYNAMIC_MEMORY_ALLOCATION_TYPEDEF_H_ */
