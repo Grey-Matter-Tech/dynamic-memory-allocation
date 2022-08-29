@@ -8,4 +8,4 @@ Supports following functionality:
 
 Getting Started:
 Clone the repo and run following command.
-$ make 
+* $ make 
