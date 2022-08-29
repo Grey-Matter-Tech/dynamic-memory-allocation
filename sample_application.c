@@ -45,26 +45,34 @@ void main(void)
 	{
 		int i = 0, size = 0;
 		unsigned int *ptr = NULL, *sptr = NULL;
-		unsigned char catch = rand() % 9 + 1;
+		unsigned char catch = 3;
 		while(i < 100)
 		{
-			if( i % 4 == 0)
+			/*if( i % 3 == 0 && i > 0)
 			{
-				HEAP.heap_free(sptr);
-				HEAP.heap_flush();
+				//HEAP.heap_free(sptr);
+				//HEAP.heap_flush();
+			}
+			else */if(i % 4 == 0 && i > 0)
+			{
+				printf("About to go and realloc memory\n");
+				HEAP.heap_realloc((void *)&sptr, 60);
+				memset(sptr, '$', 60);
 			}
 			else
 			{
-				size = rand() % 569;
+				size = rand() % 15;
 				ptr = (unsigned int *)HEAP.heap_alloc(size * sizeof(int));
 				if(ptr)
 				{
-					if(i % catch == 0)
+					if(i % 2 == 0)
 					{
 						sptr = ptr;
 					}
 #if (DEBUG==APP_DEBUG) || (DEBUG==HEAP_DEBUG_ALL)
-					memset(ptr, ('A' + (rand() % 26)),size /** sizeof(int)*/);
+					char data = ('A' + (rand() % 26));
+					printf("Writing data %c for %ld times\n\n\n", data, size * sizeof(int));
+					memset(ptr, data, size * sizeof(int));
 					printf("Allocated buffer at address :: %p[%d]\n", ptr, size);
 #endif
 				}
@@ -77,7 +85,5 @@ void main(void)
 			}
 			i++;
 		}
-		printf("DUMPING STATS###########################\n");
-		HEAP.heap_statistics();
 	}
 }

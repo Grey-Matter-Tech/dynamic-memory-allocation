@@ -44,6 +44,7 @@
 typedef unsigned char bool_t;
 typedef unsigned char uint8_t;
 typedef unsigned int uint32_t;
+typedef int int32_t;
 typedef unsigned long uint64_t;
 #endif /* HHEAP_TYPEEDEFS */
 

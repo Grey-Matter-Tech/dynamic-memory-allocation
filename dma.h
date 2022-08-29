@@ -121,6 +121,7 @@ struct hheap_driver{
 	struct heap_memory **heap; /*WIP-#1*/
 	unsigned char (*init_heap)(void);
 	void * (*heap_alloc)(unsigned int size);
+	bool_t (*heap_realloc)(void **addr, unsigned int size);
 	unsigned char (*heap_free)(void *addr);
 	void (*heap_flush)(void);
 	void (*heap_maintenance)(void * free_ptr);

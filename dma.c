@@ -143,7 +143,7 @@ bool_t hheap_free(void *addr)
 		if(VALIDATE_ADDRESS(header) == OK)
 		{
 #if (DEBUG == HEAP_DEBUG_ALL) || (DEBUG == HEAP_ADDRESS_DEBUG)
-			printf("hfree :: Address is valid :: %p[%d]\n", header + HEADER_SIZE, *(unsigned int *)header);
+			printf("hfree :: Address is valid :: %p[%d]\n", header, *(unsigned int *)header);
 			printf("hfree :: Freeing the memory\n");
 #endif
 			*header &= ~(1);
@@ -161,6 +161,45 @@ bool_t hheap_free(void *addr)
 	return ret;
 }
 
+bool_t hheap_realloc(void **addr, uint32_t size)
+{
+	bool_t ret = FAIL;
+
+	if(*addr)
+	{
+		void *current_header = *addr - HEADER_SIZE;
+		void *new_header = NULL;
+		uint32_t total_size = ALIGN(size + HEADER_SIZE);
+		int32_t diff = 0, current_size = (*(uint32_t *)current_header & ~(1));
+		void *next_header = (*addr + current_size) - HEADER_SIZE;
+
+		if((*(uint32_t *)next_header == hheap->rem_mem) && (hheap->rem_mem > size))
+		{
+			diff = size - current_size;
+			current_size += diff;
+			*(uint32_t *)current_header = current_size;
+			ret = OK;
+		}
+		else
+		{
+			new_header = hheap_alloc(size);
+			memset(new_header, '@', size);
+			if(new_header)
+			{
+				for(uint32_t i = 0; i < current_size; i++)
+				{
+					*(uint8_t *)(new_header + i) = *(uint8_t *)(*addr + i);
+				}
+				hheap_free(*addr);
+			}
+			ret = OK;
+		}
+		*addr = new_header - current_size;
+	}
+
+	return ret;
+}
+
 void hheap_flush(void)
 {
 	memset(hheap->heap, 0, HEAP_SIZE);
@@ -169,7 +208,6 @@ void hheap_flush(void)
 
 void hheap_maintenance(void * free_ptr)
 {
-	hheap_show();
 	uint32_t *ptr = (free_ptr + *(uint32_t *)(free_ptr));
 	uint8_t *nptr = (uint8_t *)free_ptr;
 	nptr += *((uint32_t *)free_ptr);
@@ -189,9 +227,12 @@ void hheap_maintenance(void * free_ptr)
 		}
 	}
 
+
 	while(count > 0)
 	{
-		high_end = (uint64_t) ((nptr + (*(uint32_t *)nptr & ~(1))) + HEADER_SIZE);
+		high_end = (uint64_t) ((nptr + (*(uint32_t *)nptr & ~(1))));
+		if(count == 1)
+			high_end += HEADER_SIZE;
 		while((uint64_t)nptr < high_end)
 		{
 			*src++ = *nptr;
@@ -272,6 +313,7 @@ struct hheap_driver driver_beta = {
 	.heap = &hheap,
 	.init_heap = hheap_init,
 	.heap_alloc = hheap_alloc,
+	.heap_realloc = hheap_realloc,
 	.heap_free = hheap_free,
 	.heap_flush = hheap_flush,
 	.heap_maintenance = hheap_maintenance,
