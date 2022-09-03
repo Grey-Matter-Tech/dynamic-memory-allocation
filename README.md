@@ -5,6 +5,7 @@ Supports following functionality:
 * freeing memory
 * re-allocating memory(new size less than existing size is not tested!)
 * memory maintenance
+* setting heap policy(first fit, next fir, best fit(WIP))
 
 Getting Started:
 Clone the repo and run following command.
