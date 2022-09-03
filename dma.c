@@ -41,6 +41,9 @@
 void hheap_show(void);
 void hheap_maintenance(void * free_ptr);
 struct heap_memory *hheap = NULL;
+static find_mem_block find_fit;
+static heap_policy current_policy = heap_next_fit;
+static uint8_t *mem_tracker = NULL;
 
 /**
  * find_fit
@@ -49,7 +52,7 @@ struct heap_memory *hheap = NULL;
  * Description: Traverse through hheap memory, looks for memory chunk which
  * is large enough to hold data of given size and finally returns its address.
  */
-static void * find_fit(uint32_t size)
+static void * first_fit(uint32_t size)
 {
 	uint8_t *start = (uint8_t *)HEAP_LOW_END;
 	while(start < (uint8_t *)HEAP_HIGH_END)
@@ -59,6 +62,42 @@ static void * find_fit(uint32_t size)
 			return (void *)start;
 		}
 		start += ((*(uint32_t *)start) & ~(1));
+	}
+	return NULL;
+}
+
+
+/**
+ * next_fit
+ * ARGS:size(size of memory chunk to be allocated)
+ * Return value: void *(returns starting address of memory chunk available)
+ * Description: Traverse through hheap memory(starting from address pointed by
+ * mem_tracker), looks for memory chunk which is large enough to hold data of
+ * given size and finally returns its address.
+ */
+static void * next_fit(uint32_t size)
+{
+	uint8_t *start = mem_tracker;
+	bool_t iterated_flag = 0U;
+	while(!iterated_flag)
+	{
+		if( ( (!(*(uint32_t *)start & 1)) && (*(uint32_t *)start > size) ) )
+		{
+			mem_tracker = start;
+			return start;
+		}
+
+		start += ((*(uint32_t *)start) & ~(1));
+
+		if(start == (uint8_t *)HEAP_HIGH_END)
+		{
+			start = (uint8_t *)HEAP_LOW_END;
+		}
+
+		if(start == mem_tracker)
+		{
+			iterated_flag = 1U;
+		}
 	}
 	return NULL;
 }
@@ -90,6 +129,27 @@ bool_t hheap_init(void)
 		hheap->rem_mem = HEAP_SIZE;
 		hheap->total_mem = HEAP_SIZE;
 		hheap->heap[0] = HEAP_SIZE;
+		switch(current_policy)
+		{
+			case heap_first_fit:
+			{
+				find_fit = first_fit;
+				break;
+			}
+			case heap_next_fit:
+			{
+				find_fit = next_fit;
+				mem_tracker = (uint8_t *)HEAP_LOW_END;
+				break;
+			}
+			default:
+			{
+				printf("Oops!\n");
+				//find_fit = err_handler;
+				break;
+			}
+		}
+
 #if DEBUG == HEAP_DEBUG_ALL
 		printf("hheap memory is initialized[%d]\n", HEAP_SIZE);
 #endif
@@ -98,6 +158,15 @@ bool_t hheap_init(void)
 	return ret;
 }
 
+/**
+ * hheap_alloc
+ * ARGS:size
+ * Return value: address at which allocated buffer starts
+ * Description: allocates the memory buffer of requested
+ * size from heap memory. Rounds up size + HEADER_SIZE to append
+ * a header to hold metaa information regarding allocated buffer,
+ * such as size of buffer and status of it(avail or occupied).
+ */
 void *hheap_alloc(uint32_t size)
 {
 	void *header = NULL;
@@ -106,6 +175,11 @@ void *hheap_alloc(uint32_t size)
 #if (DEBUG == HEAP_MEM_SIZE_DEBUG) || (DEBUG == HEAP_DEBUG_ALL)
 	printf("hmalloc :: total size needed is :: %d\n", total_size);
 #endif
+	/**
+	 * find_fit is a function pointer which calls respective
+	 * function based on current heap policy.
+	 * As of now it is supporting first_fit and next_fit only.
+	 */
 	header = find_fit(total_size);
 	if(header)
 	{
@@ -130,6 +204,16 @@ void *hheap_alloc(uint32_t size)
 	return (void *)(header);
 }
 
+/**
+ * hheap_free
+ * ARGS:address of buffer to be freed.
+ * Return value: ret (OK, FAIL)
+ * Description: checks the given address is valid or not(whether it
+ * is within the range of heap memory). If address is valid, it will mark
+ * its status as available memory block in its header.
+ * Finally it calls hheap_maintenance to align all the occupied buffers at side
+ * of heap and all the available buffers at the other side of heap.
+ */
 bool_t hheap_free(void *addr)
 {
 	bool_t ret = FAIL;
@@ -200,6 +284,12 @@ bool_t hheap_realloc(void **addr, uint32_t size)
 	return ret;
 }
 
+/**
+ * hheap_flush
+ * ARGS:none
+ * Return value: none
+ * Description: Clears the content of entire heap memory except the only header.
+ */
 void hheap_flush(void)
 {
 	memset(hheap->heap, 0, HEAP_SIZE);
@@ -226,7 +316,6 @@ void hheap_maintenance(void * free_ptr)
 			break;
 		}
 	}
-
 
 	while(count > 0)
 	{
@@ -308,6 +397,15 @@ void hheap_show(void)
 	printf("\n");
 }
 
+void hheap_set_policy(heap_policy policy)
+{
+	current_policy = policy;
+}
+
+heap_policy hheap_get_policy(void)
+{
+	return current_policy;
+}
 
 struct hheap_driver driver_beta = {
 	.heap = &hheap,
@@ -318,4 +416,6 @@ struct hheap_driver driver_beta = {
 	.heap_flush = hheap_flush,
 	.heap_maintenance = hheap_maintenance,
 	.heap_statistics = hheap_stats,
+	.set_heap_policy = hheap_set_policy,
+	.get_heap_policy = hheap_get_policy,
 };
